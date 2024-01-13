@@ -1,15 +1,18 @@
-PROCEDURE a(b) IS IN
-  b := 10;
+PROCEDURE a(a, T b, c) IS IN
+  b[a] := 10;
 END
 
 PROCEDURE de(a,T b) IS
   c, d[10]
 IN
-  a(a);
+  a(a, b, c);
 END
 
 PROGRAM IS 
   a,b[10] 
 IN
+  READ a;
+  READ b[a];
   de(a,b);
+  WRITE b[a];
 END

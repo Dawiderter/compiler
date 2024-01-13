@@ -49,6 +49,7 @@ pub enum IRInstr {
     PassParamAddress(ProcedureID, TempID),
     Call(ProcedureID),
     Return,
+    Halt,
     Read(TempID),
     Write(IRValue),
     Label(LabelID),
@@ -601,7 +602,7 @@ impl IRProcedure {
 
         ir_procedure.generate_commands(comms, program_so_far)?;
 
-        ir_procedure.push_instr(IRInstr::Return);
+        ir_procedure.push_instr(IRInstr::Halt);
 
         Ok(ir_procedure)
     }
@@ -762,6 +763,9 @@ impl Display for IRProcedure {
                 }
                 IRInstr::Return => {
                     writeln!(f, "return")?;
+                }
+                IRInstr::Halt => {
+                    writeln!(f, "halt")?;
                 }
                 IRInstr::Call(proc) => {
                     writeln!(f, "call fn@{}", proc.0)?;
