@@ -1,0 +1,15 @@
+PROCEDURE a(b) IS IN
+  b := 10;
+END
+
+PROCEDURE de(a,T b) IS
+  c, d[10]
+IN
+  a(a);
+END
+
+PROGRAM IS 
+  a,b[10] 
+IN
+  de(a,b);
+END

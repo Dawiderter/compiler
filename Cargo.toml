@@ -6,3 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+line-span = "0.1.5"
+owo-colors = "4.0.0"
+winnow = "0.5.33"
