@@ -2,14 +2,32 @@ use std::{collections::HashMap, fmt::Display};
 
 use crate::{ast::*, lexer::*};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct TempID(usize);
 
-#[derive(Debug, Clone, Copy)]
+impl TempID {
+    pub fn id(&self) -> usize {
+        self.0
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct LabelID(usize);
 
-#[derive(Debug, Clone, Copy)]
+impl LabelID {
+    pub fn id(&self) -> usize {
+        self.0
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProcedureID(usize);
+
+impl ProcedureID {
+    pub fn id(&self) -> usize {
+        self.0
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub enum IRValue {
@@ -45,8 +63,8 @@ pub enum IRInstr {
     JumpIfNotEqual(LabelID, IRValue, IRValue),
     JumpIfLess(LabelID, IRValue, IRValue),
     JumpIfLessOrEqual(LabelID, IRValue, IRValue),
-    PassParamCopy(ProcedureID, TempID),
-    PassParamAddress(ProcedureID, TempID),
+    PassParamCopy(ProcedureID, TempID, usize),
+    PassParamAddress(ProcedureID, TempID, usize),
     Call(ProcedureID),
     Return,
     Halt,
@@ -114,6 +132,12 @@ impl VarMap {
     pub fn arg_count(&self) -> usize {
         self.argument_count
     }
+    pub fn iter_vars(&self) -> impl Iterator<Item = VarType> + '_ {
+        self.id_to_type.iter().copied()
+    }
+    pub fn total_tmp(&self) -> usize {
+        self.used_ids - self.id_to_type.len()
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -135,10 +159,10 @@ impl LabelMap {
 
 #[derive(Debug, Clone, Default)]
 pub struct IRProcedure {
-    name: String,
-    vars: VarMap,
-    labels: LabelMap,
-    instructions: Vec<IRInstr>,
+    pub name: String,
+    pub vars: VarMap,
+    pub labels: LabelMap,
+    pub instructions: Vec<IRInstr>,
 }
 
 #[derive(Debug, Clone)]
@@ -536,16 +560,16 @@ impl IRProcedure {
 
             match (called_arg_type, proc_arg_type) {
                 (VarType::TableArgument, VarType::TableArgument) => {
-                    self.push_instr(IRInstr::PassParamCopy(called_proc_id, called_arg))
+                    self.push_instr(IRInstr::PassParamCopy(called_proc_id, called_arg, i))
                 }
                 (VarType::TableLocal(_), VarType::TableArgument) => {
-                    self.push_instr(IRInstr::PassParamAddress(called_proc_id, called_arg))
+                    self.push_instr(IRInstr::PassParamAddress(called_proc_id, called_arg, i))
                 }
                 (VarType::Argument, VarType::Argument) => {
-                    self.push_instr(IRInstr::PassParamCopy(called_proc_id, called_arg))
+                    self.push_instr(IRInstr::PassParamCopy(called_proc_id, called_arg, i))
                 }
                 (VarType::Local, VarType::Argument) => {
-                    self.push_instr(IRInstr::PassParamAddress(called_proc_id, called_arg))
+                    self.push_instr(IRInstr::PassParamAddress(called_proc_id, called_arg, i))
                 }
                 _ => {
                     return Err(IRGenErr::ProcedureArgWrongType);
@@ -647,9 +671,9 @@ impl IRProcedure {
 
 #[derive(Debug, Clone, Default)]
 pub struct IRProgram {
-    proc_names_to_id: HashMap<String, ProcedureID>,
-    procedures: Vec<IRProcedure>,
-    main: IRProcedure,
+    pub proc_names_to_id: HashMap<String, ProcedureID>,
+    pub procedures: Vec<IRProcedure>,
+    pub main: IRProcedure,
 }
 
 impl IRProgram {
@@ -699,7 +723,7 @@ impl Display for IRProcedure {
                 "   {} = #{} type: {:?}",
                 name,
                 id.0,
-                self.vars.var_type(id)
+                self.vars.var_type(id).unwrap()
             )?;
         }
         writeln!(f, ")")?;
@@ -770,11 +794,11 @@ impl Display for IRProcedure {
                 IRInstr::Call(proc) => {
                     writeln!(f, "call fn@{}", proc.0)?;
                 }
-                IRInstr::PassParamCopy(proc, x) => {
-                    writeln!(f, "pass #{} to fn@{}", x.0, proc.0)?;
+                IRInstr::PassParamCopy(proc, x, i) => {
+                    writeln!(f, "pass #{} to fn@{} [{}]", x.0, proc.0,i)?;
                 }
-                IRInstr::PassParamAddress(proc, x) => {
-                    writeln!(f, "pass &#{} to fn@{}", x.0, proc.0)?;
+                IRInstr::PassParamAddress(proc, x, i) => {
+                    writeln!(f, "pass &#{} to fn@{} [{}]", x.0, proc.0,i)?;
                 }
                 IRInstr::Read(x) => {
                     writeln!(f, "read to #{}", x.0)?;

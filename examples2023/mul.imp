@@ -1,0 +1,10 @@
+PROGRAM IS
+    a, b, c, d
+IN
+    READ a;
+    READ b;
+    c := a / b;
+    d := a % b;
+    WRITE c;
+    WRITE d;
+END

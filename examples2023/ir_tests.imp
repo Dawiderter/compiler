@@ -1,18 +1,26 @@
-PROCEDURE a(a, T b, c) IS IN
-  b[a] := 10;
+# Silnia+Fibonacci
+# ? 20
+# > 2432902008176640000
+# > 6765
+
+PROCEDURE fib(T f, n) IS
+  i[100], j, k, l
+IN
+  f[0] := 0;
+  f[1] := 1;
+  j := 2;
+  WHILE j <= n DO
+      k := j - 1;
+      l := k - 1;
+      f[j] := f[k] + f[l];
+      j:=j+1;
+  ENDWHILE
 END
 
-PROCEDURE de(a,T b) IS
-  c, d[10]
+PROGRAM IS
+    f[100], n
 IN
-  a(a, b, c);
-END
-
-PROGRAM IS 
-  a,b[10] 
-IN
-  READ a;
-  READ b[a];
-  de(a,b);
-  WRITE b[a];
+    READ n;
+    fib(f, n);
+    WRITE f[n];
 END
