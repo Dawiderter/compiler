@@ -17,7 +17,7 @@ fn main() {
     let prog = program.parse(&tokens.tokens);
     let prog = ok_with_report(&input, &tokens.spans, prog).unwrap();
     let ir_prog = IRProgram::generate(prog).unwrap();
-    //println!("{}", ir_prog);
+    println!("{}", ir_prog);
     let mach = MachProgram::generate(ir_prog);
-    println!("{}", mach);
+    //println!("{}", mach);
 }

@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 line-span = "0.1.5"
 owo-colors = "4.0.0"
+slotmap = "1.0.7"
 winnow = "0.5.33"

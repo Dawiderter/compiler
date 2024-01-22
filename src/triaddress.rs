@@ -1,5 +1,7 @@
 use std::{collections::HashMap, fmt::Display};
 
+use slotmap::{SlotMap, new_key_type};
+
 use crate::{ast::*, lexer::*};
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -11,14 +13,7 @@ impl TempID {
     }
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct LabelID(usize);
-
-impl LabelID {
-    pub fn id(&self) -> usize {
-        self.0
-    }
-}
+new_key_type! { pub struct LabelID; }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProcedureID(usize);
@@ -141,27 +136,10 @@ impl VarMap {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct LabelMap {
-    id_to_name: Vec<String>,
-}
-
-impl LabelMap {
-    pub fn add_label(&mut self, label: String) -> LabelID {
-        let id = LabelID(self.id_to_name.len());
-        let label = format!("{}@{}", label, id.0);
-        self.id_to_name.push(label);
-        id
-    }
-    pub fn get_name(&self, id: LabelID) -> &str {
-        self.id_to_name[id.0].as_str()
-    }
-}
-
-#[derive(Debug, Clone, Default)]
 pub struct IRProcedure {
     pub name: String,
     pub vars: VarMap,
-    pub labels: LabelMap,
+    pub labels: SlotMap<LabelID, String>,
     pub instructions: Vec<IRInstr>,
 }
 
@@ -201,6 +179,12 @@ impl IRProcedure {
 
     fn push_instr(&mut self, instr: IRInstr) {
         self.instructions.push(instr);
+    }
+
+    fn add_label(&mut self, label: &str) -> LabelID {
+        let number = self.labels.len();
+        let unique_name = format!("{}@{}", label, number);
+        self.labels.insert(unique_name)
     }
 
     fn generate_access(&mut self, value: Value) -> Result<IRValue, IRGenErr> {
@@ -434,7 +418,7 @@ impl IRProcedure {
         // END
         // ..rest
 
-        let label_id = self.labels.add_label("ENDIF".to_string());
+        let label_id = self.add_label("ENDIF");
         self.generate_jump_on_false(cond, label_id)?;
 
         self.generate_commands(then, program_so_far)?;
@@ -459,8 +443,8 @@ impl IRProcedure {
         // END:
         // ..rest
 
-        let else_id = self.labels.add_label("ELSE".to_string());
-        let end_id = self.labels.add_label("ENDELSEIF".to_string());
+        let else_id = self.add_label("ELSE");
+        let end_id = self.add_label("ENDELSEIF");
 
         self.generate_jump_on_false(cond, else_id)?;
         self.generate_commands(then, program_so_far)?;
@@ -487,8 +471,8 @@ impl IRProcedure {
         // END:
         // ..rest
 
-        let begin_id = self.labels.add_label("BEGINWHILE".to_string());
-        let end_id = self.labels.add_label("ENDWHILE".to_string());
+        let begin_id = self.add_label("BEGINWHILE");
+        let end_id = self.add_label("ENDWHILE");
 
         self.push_instr(IRInstr::Label(begin_id));
 
@@ -511,7 +495,7 @@ impl IRProcedure {
         // ..body
         // JUMP TO BEGIN IF COND FALSE
         // ..rest
-        let begin_id = self.labels.add_label("BEGINREPEAT".to_string());
+        let begin_id = self.add_label("BEGINREPEAT");
 
         self.push_instr(IRInstr::Label(begin_id));
         self.generate_commands(body, program_so_far)?;
@@ -768,22 +752,22 @@ impl Display for IRProcedure {
                     writeln!(f, "#{} = {} % {}", l.0, r1, r2)?;
                 }
                 IRInstr::Jump(label) => {
-                    writeln!(f, "goto {}", self.labels.get_name(*label))?;
+                    writeln!(f, "goto {}", self.labels[*label])?;
                 }
                 IRInstr::JumpIfEqual(label, l, r) => {
-                    writeln!(f, "goto {} if {} = {}", self.labels.get_name(*label), l, r)?;
+                    writeln!(f, "goto {} if {} = {}", self.labels[*label], l, r)?;
                 }
                 IRInstr::JumpIfNotEqual(label, l, r) => {
-                    writeln!(f, "goto {} if {} != {}", self.labels.get_name(*label), l, r)?;
+                    writeln!(f, "goto {} if {} != {}", self.labels[*label], l, r)?;
                 }
                 IRInstr::JumpIfLess(label, l, r) => {
-                    writeln!(f, "goto {} if {} < {}", self.labels.get_name(*label), l, r)?;
+                    writeln!(f, "goto {} if {} < {}", self.labels[*label], l, r)?;
                 }
                 IRInstr::JumpIfLessOrEqual(label, l, r) => {
-                    writeln!(f, "goto {} if {} <= {}", self.labels.get_name(*label), l, r)?;
+                    writeln!(f, "goto {} if {} <= {}", self.labels[*label], l, r)?;
                 }
                 IRInstr::Label(label) => {
-                    writeln!(f, "{}:", self.labels.get_name(*label))?;
+                    writeln!(f, "{}:", self.labels[*label])?;
                 }
                 IRInstr::Return => {
                     writeln!(f, "return")?;

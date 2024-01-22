@@ -491,8 +491,8 @@ impl MachProgram {
             }
             IRInstr::JumpIfEqual(label, l, r) => {
                 self.push_instr(MachInstr::Comment(format!(
-                    "Jump @{} if {} = {}",
-                    label.id(),
+                    "Jump @{:?} if {} = {}",
+                    label,
                     l,
                     r
                 )));
@@ -519,8 +519,8 @@ impl MachProgram {
             }
             IRInstr::JumpIfNotEqual(label, l, r) => {
                 self.push_instr(MachInstr::Comment(format!(
-                    "Jump @{} if {} = {}",
-                    label.id(),
+                    "Jump @{:?} if {} = {}",
+                    label,
                     l,
                     r
                 )));
@@ -545,8 +545,8 @@ impl MachProgram {
             }
             IRInstr::JumpIfLess(label, l, r) => {
                 self.push_instr(MachInstr::Comment(format!(
-                    "Jump @{} if {} < {}",
-                    label.id(),
+                    "Jump @{:?} if {} < {}",
+                    label,
                     l,
                     r
                 )));
@@ -559,8 +559,8 @@ impl MachProgram {
             }
             IRInstr::JumpIfLessOrEqual(label, l, r) => {
                 self.push_instr(MachInstr::Comment(format!(
-                    "Jump @{} if {} <= {}",
-                    label.id(),
+                    "Jump @{:?} if {} <= {}",
+                    label,
                     l,
                     r
                 )));
