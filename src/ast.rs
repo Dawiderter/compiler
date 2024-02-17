@@ -158,7 +158,7 @@ pub struct ArgDeclarations {
 
 /// decl -> pidentifier
 /// | pidentifier [ num ]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Decl {
     Var(String),
     Table(String, u64),
@@ -214,6 +214,7 @@ pub enum Command {
         body: Commands,
     },
     ProcCall(ProcCall),
+    Inlined(Commands),
     Read(Ident),
     Write(Value),
 }
