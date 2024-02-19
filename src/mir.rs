@@ -3,10 +3,7 @@ use std::{collections::HashMap, fmt::Display};
 use slotmap::{new_key_type, Key, SlotMap};
 use smallvec::{smallvec, SmallVec};
 
-use crate::{
-    ast::{self, Main, Procedure, Program},
-    ast_analysis,
-};
+use crate::ast::{self, Main, Procedure, Program};
 
 new_key_type! { pub struct MirVar; }
 new_key_type! { pub struct MirProcedure; }
@@ -140,7 +137,10 @@ impl MirInstr {
                     _ => smallvec![],
                 }
             }
-            MirInstr::NoopRead(var) | MirInstr::JumpReturn(var) | MirInstr::LoadAddress(_, var) | MirInstr::Load(_, var) => {
+            MirInstr::NoopRead(var)
+            | MirInstr::JumpReturn(var)
+            | MirInstr::LoadAddress(_, var)
+            | MirInstr::Load(_, var) => {
                 smallvec![*var]
             }
             _ => smallvec![],
@@ -674,7 +674,6 @@ impl MirBuilder {
         for &calee_arg in proc.args.iter().rev() {
             instr_buffer.push(MirInstr::NoopRead(calee_arg));
         }
-        
     }
 
     fn build_read(&mut self, instr_buffer: &mut Vec<MirInstr>, ident: &ast::Ident) {

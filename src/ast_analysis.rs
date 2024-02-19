@@ -125,7 +125,7 @@ pub enum VarType  {
 #[derive(Debug, Clone, Default)]
 pub struct VarInfo {
     typ: VarType,
-    is_arg: bool,
+    _is_arg: bool,
     is_init: bool,
     uses: u32,
     loop_uses: u32,
@@ -206,14 +206,14 @@ impl VarUseChecker {
                 if self.var_info.contains_key(name) {
                     self.errors.push(VarUseError::VarNameCollision(name.to_owned()))
                 } else {
-                    self.var_info.insert(name.to_owned(), VarInfo { typ: VarType::Number, is_init: true, is_arg: true, ..Default::default() }); 
+                    self.var_info.insert(name.to_owned(), VarInfo { typ: VarType::Number, is_init: true, _is_arg: true, ..Default::default() }); 
                 }
             },
             ast::ArgDecl::Table(name) => {
                 if self.var_info.contains_key(name) {
                     self.errors.push(VarUseError::VarNameCollision(name.to_owned()))
                 } else {
-                    self.var_info.insert(name.to_owned(), VarInfo { typ: VarType::Table, is_init: true, is_arg: true, ..Default::default() }); 
+                    self.var_info.insert(name.to_owned(), VarInfo { typ: VarType::Table, is_init: true, _is_arg: true, ..Default::default() }); 
                 }
             },
         };

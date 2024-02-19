@@ -526,27 +526,3 @@ pub fn ok_with_report(
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use winnow::Located;
-
-    use crate::lexer::lex;
-
-    use super::*;
-
-    #[test]
-    fn test() {
-        let input = include_str!("./../examples2023/example1.imp");
-        let tokens = lex.parse(Located::new(input)).unwrap();
-
-        let ast = program.parse(&tokens.tokens);
-
-        ok_with_report(input, &tokens.spans, ast);
-
-        // match ast {
-        //     Ok(o) => println!("{:?}", o),
-        //     Err(e) => todo!("{:?}", e),
-        // }
-    }
-}

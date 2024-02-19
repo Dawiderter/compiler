@@ -539,7 +539,7 @@ impl MachProgramBuilder {
         }
 
         self.memory_alloc();
-        
+
         self.rewrite_illegals();
 
         self.resolve_labels();
@@ -634,5 +634,3 @@ impl Display for MachProgramBuilder {
         Ok(())
     }
 }
-
-

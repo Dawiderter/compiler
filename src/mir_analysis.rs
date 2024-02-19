@@ -1,10 +1,11 @@
-use std::{
-    collections::HashSet, fmt::Display, fs::File, ops::Range
-};
+use std::{collections::HashSet, fmt::Display, ops::Range};
 
 use slotmap::{new_key_type, SecondaryMap, SlotMap};
 
-use crate::mir::{CondOp, Id, MathOp, MirBuilder, MirInstr, MirLabel, MirProcedure, MirVar, MirVarInfo, MirVarType};
+use crate::mir::{
+    CondOp, Id, MathOp, MirBuilder, MirInstr, MirLabel, MirProcedure, MirVar, MirVarInfo,
+    MirVarType,
+};
 
 new_key_type! { pub struct BlockId; }
 
@@ -261,13 +262,26 @@ impl InterferenceGraph {
         }
     }
 
-    fn insert_new_node(vars: &SlotMap<MirVar, MirVarInfo>, memory: &mut SlotMap<MemorySlot, u64>, graph: &mut SecondaryMap<MirVar, Node>, var: MirVar) {
+    fn insert_new_node(
+        vars: &SlotMap<MirVar, MirVarInfo>,
+        memory: &mut SlotMap<MemorySlot, u64>,
+        graph: &mut SecondaryMap<MirVar, Node>,
+        var: MirVar,
+    ) {
         if !graph.contains_key(var) {
             let node = if let MirVarType::TableLocal(n) = vars[var].typ {
                 let mem = memory.insert(n);
-                Node { curr_spill: Some(SpillInfo::Spilled(mem)), cant: 0..0, neigh: HashSet::new() }
+                Node {
+                    curr_spill: Some(SpillInfo::Spilled(mem)),
+                    cant: 0..0,
+                    neigh: HashSet::new(),
+                }
             } else {
-                Node { curr_spill: None, cant: 0..0, neigh: HashSet::new() }
+                Node {
+                    curr_spill: None,
+                    cant: 0..0,
+                    neigh: HashSet::new(),
+                }
             };
             graph.insert(var, node);
         }
@@ -420,7 +434,6 @@ impl InterferenceGraph {
 }
 
 pub fn optimize_mir(mir: &MirBuilder) -> InterferenceGraph {
-    
     let mut rig = InterferenceGraph {
         variables: mir.variables.clone(),
         ..Default::default()
@@ -431,8 +444,12 @@ pub fn optimize_mir(mir: &MirBuilder) -> InterferenceGraph {
         let cfg = ControlFlowGraph::construct(instr);
         let liveness = LivenessGraph::construct(&cfg);
 
-        rig = InterferenceGraph { liveness, cfg, ..rig };
-        
+        rig = InterferenceGraph {
+            liveness,
+            cfg,
+            ..rig
+        };
+
         rig.allocate(i);
     }
 
@@ -443,7 +460,7 @@ pub fn flatten(mir: &MirBuilder) -> Vec<MirInstr> {
     let mut acc = Vec::new();
 
     acc.extend_from_slice(&mir.procedures[mir.main].instr);
-    
+
     for (i, proc) in &mir.procedures {
         if i != mir.main {
             acc.extend_from_slice(&proc.instr);

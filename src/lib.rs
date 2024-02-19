@@ -15,23 +15,23 @@ pub mod machine;
 pub mod mir;
 pub mod mir_analysis;
 
-pub fn build_code(input: &str) -> Result<MachProgramBuilder, ()> {
+pub fn build_code(input: &str) -> Option<MachProgramBuilder> {
     let lex = lex_str(input);
 
     if !lex.errors.is_empty() {
         report_lex_errors(input, &lex.errors);
-        return Err(());
+        return None;
     }
 
     let prog = program.parse(&lex.tokens);
 
     let Ok(mut prog) = prog else {
         ok_with_report(input, &lex.spans, prog);
-        return Err(());
+        return None;
     };
 
     if !optimize_ast(&mut prog) {
-        return Err(());
+        return None;
     }
 
     let builder = MirBuilder::build_program(&prog);
@@ -49,5 +49,5 @@ pub fn build_code(input: &str) -> Result<MachProgramBuilder, ()> {
 
     mach.build(&instr);
 
-    Ok(mach)
+    Some(mach)
 }

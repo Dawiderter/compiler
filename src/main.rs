@@ -1,5 +1,8 @@
 use std::io::Write;
-use std::{fs::{read_to_string, File}, path::PathBuf};
+use std::{
+    fs::{read_to_string, File},
+    path::PathBuf,
+};
 
 use clap::Parser;
 use compiler::build_code;
@@ -15,13 +18,12 @@ pub fn main() {
     let input = read_to_string(args.input_file).unwrap();
 
     let mach = build_code(&input);
-    let Ok(mach) = mach else { return; };
+    let Some(mach) = mach else { return; };
 
     if let Some(output) = args.output_file {
         let mut file = File::create(output).unwrap();
-        writeln!(file,"{}", mach).unwrap();
+        writeln!(file, "{}", mach).unwrap();
     } else {
         println!("{}", mach);
     }
 }
-

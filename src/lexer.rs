@@ -80,11 +80,17 @@ pub fn report_lex_errors(i: &str, errors: &[Range<usize>]) {
         for lin in lines.by_ref() {
             line_number += 1;
             if lin.range().contains(&error.start) {
-                println!("Unexpected token on line {}: {}{}{}", line_number.bold(), &i[lin.start()..error.start],(&i[error.start..error.end]).bold().red() ,&i[error.end..lin.end()]);
+                println!(
+                    "Unexpected token on line {}: {}{}{}",
+                    line_number.bold(),
+                    &i[lin.start()..error.start],
+                    (&i[error.start..error.end]).bold().red(),
+                    &i[error.end..lin.end()]
+                );
 
                 break;
             }
-        };
+        }
     }
 }
 
@@ -155,20 +161,4 @@ fn token_type(i: &mut LexingStream) -> PResult<Token> {
         take_till(1.., (' ', '\t', '\r', '\n')).value(Token::Error)
     ))
     .parse_next(i)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test() {
-        let input = include_str!("../examples2023/example1.imp");
-        let stream = Located::new(input);
-        let res = lex.parse(stream).unwrap();
-
-        if !res.errors.is_empty() {
-            report_lex_errors(input, &res.errors);
-        }
-    }
 }
