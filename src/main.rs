@@ -1,23 +1,29 @@
-use std::{fs::read_to_string, env::args};
-
-use compiler_basic::{
-    ast::{program, ok_with_report},
-    lexer::{lex_str, report_lex_errors},
-    machine::MachProgram,
-    triaddress::IRProgram,
+use std::io::Write;
+use std::{
+    fs::{read_to_string, File},
+    path::PathBuf,
 };
-use winnow::Parser;
 
-fn main() {
-    let input_path = args().nth(1).expect("Input path missing");
-    let input = read_to_string(input_path).unwrap();
-    let tokens = lex_str(&input);
-    report_lex_errors(&input, &tokens.errors);
-    assert!(tokens.errors.is_empty());
-    let prog = program.parse(&tokens.tokens);
-    let prog = ok_with_report(&input, &tokens.spans, prog).unwrap();
-    let ir_prog = IRProgram::generate(prog).unwrap();
-    //println!("{}", ir_prog);
-    let mach = MachProgram::generate(ir_prog);
-    println!("{}", mach);
+use clap::Parser;
+use compiler::build_code;
+
+#[derive(clap::Parser)]
+pub struct CompilerArgs {
+    input_file: PathBuf,
+    output_file: Option<PathBuf>,
+}
+
+pub fn main() {
+    let args = CompilerArgs::parse();
+    let input = read_to_string(args.input_file).unwrap();
+
+    let mach = build_code(&input);
+    let Some(mach) = mach else { return; };
+
+    if let Some(output) = args.output_file {
+        let mut file = File::create(output).unwrap();
+        writeln!(file, "{}", mach).unwrap();
+    } else {
+        println!("{}", mach);
+    }
 }
